@@ -1,0 +1,729 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.3.0
+  description: Manager - Coaching Management SaaS API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+  - name: classes
+  - name: students
+  - name: attendance
+  - name: homework
+  - name: fees
+  - name: search
+  - name: dashboard
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /classes:
+    get:
+      operationId: listClasses
+      tags: [classes]
+      responses:
+        "200":
+          description: List of classes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Class"
+    post:
+      operationId: createClass
+      tags: [classes]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClassInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Class"
+
+  /classes/{id}:
+    get:
+      operationId: getClass
+      tags: [classes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Class details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Class"
+        "404":
+          description: Not found
+
+  /classes/{id}/students:
+    get:
+      operationId: listStudentsByClass
+      tags: [students]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of students
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Student"
+
+  /students:
+    get:
+      operationId: listAllStudents
+      tags: [students]
+      summary: List all students for the teacher with stats
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: classId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: archived
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Students with stats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StudentWithStats"
+    post:
+      operationId: createStudent
+      tags: [students]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+
+  /students/{id}:
+    put:
+      operationId: updateStudent
+      tags: [students]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentUpdateInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+    delete:
+      operationId: deleteStudent
+      tags: [students]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  /students/{id}/profile:
+    get:
+      operationId: getStudentProfile
+      tags: [students]
+      summary: Get full student profile with attendance, fees, homework
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Student profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentProfile"
+        "404":
+          description: Not found
+
+  /attendance:
+    get:
+      operationId: listAttendance
+      tags: [attendance]
+      parameters:
+        - name: classId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: date
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Attendance records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Attendance"
+    post:
+      operationId: saveAttendance
+      tags: [attendance]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttendanceSave"
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Attendance"
+
+  /homework:
+    get:
+      operationId: listHomework
+      tags: [homework]
+      parameters:
+        - name: classId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Homework list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Homework"
+    post:
+      operationId: createHomework
+      tags: [homework]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HomeworkInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Homework"
+
+  /homework/{id}:
+    delete:
+      operationId: deleteHomework
+      tags: [homework]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  /fees:
+    get:
+      operationId: listFees
+      tags: [fees]
+      parameters:
+        - name: classId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Fee records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Fee"
+
+  /fees/{id}:
+    patch:
+      operationId: updateFeeStatus
+      tags: [fees]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeeStatusUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Fee"
+
+  /search:
+    get:
+      operationId: searchStudents
+      tags: [search]
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SearchResult"
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/today-attendance:
+    get:
+      operationId: getTodayAttendance
+      tags: [dashboard]
+      responses:
+        "200":
+          description: Today attendance
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TodayAttendanceSummary"
+
+  /dashboard/recent-homework:
+    get:
+      operationId: getRecentHomework
+      tags: [dashboard]
+      responses:
+        "200":
+          description: Recent homework
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Homework"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+
+    Class:
+      type: object
+      required: [id, name, teacherId, createdAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        subject:
+          type: ["string", "null"]
+        teacherId:
+          type: string
+        studentCount:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+
+    ClassInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        subject:
+          type: string
+
+    Student:
+      type: object
+      required: [id, name, classId, createdAt, isArchived]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        phone:
+          type: ["string", "null"]
+        parentPhone:
+          type: ["string", "null"]
+        roll:
+          type: ["string", "null"]
+        monthlyFee:
+          type: ["integer", "null"]
+        admissionDate:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        isArchived:
+          type: boolean
+        classId:
+          type: string
+        createdAt:
+          type: string
+
+    StudentInput:
+      type: object
+      required: [name, classId]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        phone:
+          type: string
+        parentPhone:
+          type: string
+        roll:
+          type: string
+        monthlyFee:
+          type: integer
+        admissionDate:
+          type: string
+        notes:
+          type: string
+        classId:
+          type: string
+
+    StudentUpdateInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        phone:
+          type: string
+        parentPhone:
+          type: string
+        roll:
+          type: string
+        monthlyFee:
+          type: integer
+        admissionDate:
+          type: string
+        notes:
+          type: string
+        isArchived:
+          type: boolean
+
+    StudentWithStats:
+      type: object
+      required: [id, name, classId, className, createdAt, isArchived]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        phone:
+          type: ["string", "null"]
+        parentPhone:
+          type: ["string", "null"]
+        roll:
+          type: ["string", "null"]
+        monthlyFee:
+          type: ["integer", "null"]
+        admissionDate:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        isArchived:
+          type: boolean
+        classId:
+          type: string
+        className:
+          type: string
+        createdAt:
+          type: string
+        feeStatus:
+          type: ["string", "null"]
+        attendancePct:
+          type: ["number", "null"]
+
+    StudentProfile:
+      type: object
+      required: [student, className, attendancePct]
+      properties:
+        student:
+          $ref: "#/components/schemas/Student"
+        className:
+          type: string
+        attendancePct:
+          type: ["number", "null"]
+        attendanceRecords:
+          type: array
+          items:
+            $ref: "#/components/schemas/Attendance"
+        feeHistory:
+          type: array
+          items:
+            $ref: "#/components/schemas/Fee"
+        recentHomework:
+          type: array
+          items:
+            $ref: "#/components/schemas/Homework"
+
+    Attendance:
+      type: object
+      required: [id, studentId, classId, date, status]
+      properties:
+        id:
+          type: string
+        studentId:
+          type: string
+        studentName:
+          type: ["string", "null"]
+        classId:
+          type: string
+        date:
+          type: string
+        status:
+          type: string
+          enum: [present, absent]
+
+    AttendanceRecord:
+      type: object
+      required: [studentId, status]
+      properties:
+        studentId:
+          type: string
+        status:
+          type: string
+          enum: [present, absent]
+
+    AttendanceSave:
+      type: object
+      required: [classId, date, records]
+      properties:
+        classId:
+          type: string
+        date:
+          type: string
+        records:
+          type: array
+          items:
+            $ref: "#/components/schemas/AttendanceRecord"
+
+    Homework:
+      type: object
+      required: [id, classId, subject, content, createdAt]
+      properties:
+        id:
+          type: string
+        classId:
+          type: string
+        className:
+          type: ["string", "null"]
+        subject:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+
+    HomeworkInput:
+      type: object
+      required: [classId, subject, content]
+      properties:
+        classId:
+          type: string
+        subject:
+          type: string
+          minLength: 1
+        content:
+          type: string
+          minLength: 1
+
+    Fee:
+      type: object
+      required: [id, studentId, classId, teacherId, amount, month, status, createdAt]
+      properties:
+        id:
+          type: string
+        studentId:
+          type: string
+        studentName:
+          type: ["string", "null"]
+        classId:
+          type: string
+        teacherId:
+          type: string
+        amount:
+          type: integer
+        month:
+          type: string
+        status:
+          type: string
+          enum: [due, paid]
+        paidAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    FeeStatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [due, paid]
+
+    SearchResult:
+      type: object
+      required: [id, name, classId, className]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        roll:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        parentPhone:
+          type: ["string", "null"]
+        monthlyFee:
+          type: ["integer", "null"]
+        classId:
+          type: string
+        className:
+          type: string
+        feeStatus:
+          type: ["string", "null"]
+        attendancePct:
+          type: ["number", "null"]
+
+    DashboardSummary:
+      type: object
+      required: [totalClasses, totalStudents, totalHomework, dueFeeCount, teacherName]
+      properties:
+        teacherName:
+          type: string
+        totalClasses:
+          type: integer
+        totalStudents:
+          type: integer
+        totalHomework:
+          type: integer
+        dueFeeCount:
+          type: integer
+
+    TodayAttendanceSummary:
+      type: object
+      required: [classId, className, totalStudents, presentCount, absentCount]
+      properties:
+        classId:
+          type: string
+        className:
+          type: string
+        totalStudents:
+          type: integer
+        presentCount:
+          type: integer
+        absentCount:
+          type: integer
